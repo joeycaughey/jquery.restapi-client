@@ -1,11 +1,12 @@
 var API = {
-    api_key: "21232f297a57a5a743894a0e4a801fc3",
+    calls: [],
+    api_key: "Enter API Key",
     get_host: function() {
         switch (location.host) {
-            case "jcms.sitemafia.com":
-                return "http://api.jcms.sitemafia.com/v1/";
-            case "dev.jcms.local":
-                return "http://api.jcms.local/v1/";
+            case "www.website.com":
+                return "http://api.website.com/v1/";
+            case "dev.website.com":
+                return "http://dev-api.website.com/v1/";
         }
     },
     get: function(endpoint, data, callback) {
@@ -34,11 +35,11 @@ var API = {
 
             url: self.get_host() + endpoint,
             crossDomain: true,
-            async: true, 
+            async: true,
 
-            data:  data,   //$.param(data)
+            data: data, //$.param(data)
             dataType: 'json',
-            
+
             // The 'contentType' property sets the 'Content-Type' header.
             // The JQuery default for this property is
             // 'application/x-www-form-urlencoded; charset=UTF-8', which does not trigger
@@ -54,7 +55,6 @@ var API = {
                 // If this is enabled, your server must respond with the header
                 // 'Access-Control-Allow-Credentials: true'.
                 // withCredentials: true
-                
             },
 
             headers: {
@@ -62,11 +62,12 @@ var API = {
                 // If you set any non-simple headers, your server must include these
                 // headers in the 'Access-Control-Allow-Headers' response header.
                 api_key: self.api_key,
-                user: (jQuery.jStorage.get('user') ? jQuery.jStorage.get('user') : false)
+               
+                user: (jQuery.jStorage.get('user') ? jQuery.jStorage.get('user') : false),
+                requestor_token: (jQuery.jStorage.get('user') ? jQuery.jStorage.get('user')["requestor_token"] : false)
             },
 
             success: function(data, textStatus, jqXHR) {
-
                 if (callback) {
                     if (typeof callback === "object") {
                         callback.success(data);
@@ -91,5 +92,21 @@ var API = {
                 }
             }
         });
+    },
+    beforeSend: function() {
+        var object = method + "," + endpoint;
+        if (!self.calls.contains(object) > 0) {
+            self.calls.push(object);
+        }
+        Loading.show();
+    },
+    complete: function() {
+        var object = method + "," + endpoint;
+        var index = self.calls.indexOf(object);
+        //delete self.calls[index];  
+        self.calls.splice(index, 1);
+        if (self.calls.length === 0) {
+            Loading.hide();
+        }
     }
 }
