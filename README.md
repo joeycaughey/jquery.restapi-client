@@ -8,6 +8,20 @@ USAGE AND INITIALIZATION
 ----------------------------------------------------
 
 ```
+Loading the API Class
+$.getScript('/_assets/jquery.api/jquery.api.js', function() {
+    API.get_host = function() {
+        switch (location.host) {
+            case "www.website.com":
+                API.live = true;
+                return window.location.protocol+"//api.website.com/v1/";
+            case "dev.website.com":
+                return window.location.protocol+"//dev-api.website.ccom/v1/";
+        }
+    }
+})
+
+
 Getting information from the API:
 
 API.get('ModuleEventsModel/', parameters, function(request) { });
