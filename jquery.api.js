@@ -1,13 +1,11 @@
 var API = {
+    disable_loader: false,
+    data: false,
     calls: [],
-    api_key: "Enter API Key",
-    get_host: function() {
-        switch (location.host) {
-            case "www.website.com":
-                return "http://api.website.com/v1/";
-            case "dev.website.com":
-                return "http://dev-api.website.com/v1/";
-        }
+    api_key: "21232f297a57a5a743894a0e4a801fc3",
+    get_host: false,
+    get_uploads_dir: function(){
+        return this.get_host().replace("/v1/", "/files/");
     },
     get: function(endpoint, data, callback) {
         var self = this;
@@ -25,8 +23,19 @@ var API = {
         var self = this;
         self.request("DELETE", endpoint, data, callback);
     },
+    upload: function(endpoint, data, callback) {
+        var self = this;
+        self.request("POST", endpoint, data, callback);
+    },
     request: function(method, endpoint, data, callback) {
         var self = this;
+
+        var object = method + "," + endpoint;
+        if (self.calls.indexOf(object) > 0) {
+            return false;
+        }
+
+        Auth.user = (Auth.user) ? Auth.user : false;
 
         $.ajax({
             // The 'type' property sets the HTTP method.
@@ -55,6 +64,7 @@ var API = {
                 // If this is enabled, your server must respond with the header
                 // 'Access-Control-Allow-Credentials: true'.
                 // withCredentials: true
+
             },
 
             headers: {
@@ -62,13 +72,16 @@ var API = {
                 // If you set any non-simple headers, your server must include these
                 // headers in the 'Access-Control-Allow-Headers' response header.
                 api_key: self.api_key,
-               
-                user: (jQuery.jStorage.get('user') ? jQuery.jStorage.get('user') : false),
-                requestor_token: (jQuery.jStorage.get('user') ? jQuery.jStorage.get('user')["requestor_token"] : false)
+
+                user: Auth.user,
+                requestor_token: Auth.user.requestor_token
             },
 
             success: function(data, textStatus, jqXHR) {
+                var object = method + "," + endpoint;
+
                 if (callback) {
+                    //self.data = data;
                     if (typeof callback === "object") {
                         callback.success(data);
                     } else {
@@ -76,7 +89,6 @@ var API = {
                     }
                 }
             },
-
             error: function(jqXHR, textStatus, errorThrown) {
                 // Here's where you handle an error response.
                 // Note that if the error was due to a CORS issue,
@@ -90,23 +102,25 @@ var API = {
                         callback(jqXHR, textStatus, errorThrown);
                     }
                 }
+            },
+            beforeSend: function() {
+                var object = method + "," + endpoint;
+                if (!self.calls.indexOf(object) > 0) {
+                    self.calls.push(object);
+                }
+
+                if (!self.disable_loader)
+                    Loading.show();
+            },
+            complete: function() {
+                var object = method + "," + endpoint;
+                var index = self.calls.indexOf(object);
+                //delete self.calls[index];  
+                self.calls.splice(index, 1);
+                if (self.calls.length === 0) {
+                    Loading.hide();
+                }
             }
         });
-    },
-    beforeSend: function() {
-        var object = method + "," + endpoint;
-        if (!self.calls.contains(object) > 0) {
-            self.calls.push(object);
-        }
-        Loading.show();
-    },
-    complete: function() {
-        var object = method + "," + endpoint;
-        var index = self.calls.indexOf(object);
-        //delete self.calls[index];  
-        self.calls.splice(index, 1);
-        if (self.calls.length === 0) {
-            Loading.hide();
-        }
     }
 }
