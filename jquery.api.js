@@ -1,9 +1,11 @@
 var API = {
+    live: false,
     disable_loader: false,
     data: false,
     calls: [],
     api_key: "21232f297a57a5a743894a0e4a801fc3",
     get_host: false,
+    headers: {},
     get_uploads_dir: function(){
         return this.get_host().replace("/v1/", "/files/");
     },
@@ -12,6 +14,10 @@ var API = {
         self.request("GET", endpoint, data, callback);
     },
     insert: function(endpoint, data, callback) {
+        var self = this;
+        self.request("POST", endpoint, data, callback);
+    },
+    post: function(endpoint, data, callback) {
         var self = this;
         self.request("POST", endpoint, data, callback);
     },
@@ -27,15 +33,24 @@ var API = {
         var self = this;
         self.request("POST", endpoint, data, callback);
     },
-    request: function(method, endpoint, data, callback) {
+    request: function(method, endpoint, data, callback, headers) {
         var self = this;
 
         var object = method + "," + endpoint;
+        
+        if (!API.live) console.log(object);
+
         if (self.calls.indexOf(object) > 0) {
             return false;
         }
 
         Auth.user = (Auth.user) ? Auth.user : false;
+
+        headers = $.extend({},headers);
+
+        if (typeof Auth.user.token != 'undefined') {
+            headers.Authorization =  'Bearer '+Auth.user.token;
+        }
 
         $.ajax({
             // The 'type' property sets the HTTP method.
@@ -67,15 +82,7 @@ var API = {
 
             },
 
-            headers: {
-                // Set any custom headers here.
-                // If you set any non-simple headers, your server must include these
-                // headers in the 'Access-Control-Allow-Headers' response header.
-                api_key: self.api_key,
-
-                user: Auth.user,
-                requestor_token: Auth.user.requestor_token
-            },
+            headers: headers,
 
             success: function(data, textStatus, jqXHR) {
                 var object = method + "," + endpoint;
