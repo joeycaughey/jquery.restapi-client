@@ -4,8 +4,6 @@ var Auth = {
         var self = this
         var disable = true;
 
-        Auth.check();
-
         if (typeof(Storage) !== "undefined") {
             if (localStorage.getItem("user") !== "undefined") {
                 // Code for localStorage/sessionStorage.
@@ -30,8 +28,45 @@ var Auth = {
         if (disable) {
             self.logout();
         }
-       
-        setTimeout(function(){  callback(); }, 500)
+
+        setTimeout(function() {
+            callback();
+        }, 500)
+
+        return true;
+    },
+    if: function(groups, callback) {
+        var self = this
+        var disable = true;
+
+        if (typeof(Storage) !== "undefined") {
+            if (localStorage.getItem("user") !== "undefined") {
+                // Code for localStorage/sessionStorage.
+                user = JSON.parse(localStorage.getItem("user"));
+            } else {
+                user = false;
+            }
+            self.user = user;
+        } else {
+            // Sorry! No Web Storage support..
+            alert("No local storage");
+        }
+
+        if (user && (typeof user.groups === 'object')) {
+            $.each(groups, function(i, group) {
+                if (user.groups.indexOf(group) >= 0) {
+                    disable = false;
+                }
+            });
+        }
+
+        if (disable) {
+            return false;
+        }
+
+        setTimeout(function() {
+            callback();
+        }, 500)
 
         return true;
     },
@@ -55,11 +90,21 @@ var Auth = {
 
         if (user && user != "false") {
             API.disable_loader = true;
-            API.get('ModuleAPITokensModel/check/', {}, function(request) {
-                if ( (request.success && !request.response)) { // !request.success || 
-                    self.logout();   
-                }
-            });
+            var object = "GET,ModuleAPITokensModel";
+
+            if (API.calls.indexOf(object) === -1) {
+                API.get('ModuleAPITokensModel/check/', {}, function(request) {
+                    if (request.response) {
+                        if ((request.success && request.response.logout)) {
+                            self.logout();
+                            console.log("LOGGED OUT API!!!!!!!", request.response);
+                        }
+                    } else {
+                        self.logout();
+                        console.log("LOGGED OUT!!!!!!!", request.response);
+                    }
+                });
+            }
             API.disable_loader = false;
 
             $("[data-authenticate-group]").each(function() {
@@ -94,10 +139,11 @@ var Auth = {
     },
     login: function(email, password, options) {
         var self = this;
-        
+
+        self.user = false;
         localStorage.removeItem("user");
 
-        API.get('ModuleAPITokensModel/login/', {
+        API.post('ModuleAPITokensModel/login/', {
             email: email,
             password: password,
             options: options
@@ -105,17 +151,48 @@ var Auth = {
             if (request.success) {
                 self.user = request.response;
                 localStorage.setItem("user", JSON.stringify(self.user));
-                document.location = request.response.login_url;
+                console.log("REDIRECT", self.user, options.redirect_uri, "/");
+
+                if (typeof options.redirect_uri === 'undefined') {
+                    if (options.redirect_uri && options.redirect_uri !== "" && options.redirect_uri !== "#!/user/register/") {
+                        document.location = options.redirect_uri;
+                        Auth.check();
+                    } else {
+                        document.location = request.response.login_url;
+                    }
+                } else {
+                    document.location = request.response.login_url;
+                }
+
                 Popup.close();
-                self.check();
             } else {
                 $("#login-form").find("div.errors").html(request.response).show();
             }
         });
     },
     logout: function() {
+        self.user = false;
         localStorage.removeItem("user");
         document.location = '/';
+    },
+    save: function() {
+        API.disable_loader = true;
+        API.update('UsersModel/', self.user, function(request) {
+            if (request.success) {
+                localStorage.setItem("user", JSON.stringify(self.user));
+                console.log("UPDATE PROFILE", self.user)
+            }
+        });
+        API.disable_loader = false;
     }
 }
+
+if (typeof Auth.check == 'function') {
+    $(window).bind('hashchange', function() {
+        Auth.check();
+    }).on("load", function() {
+        Auth.check();
+    });
+}
+
 console.log("Loaded API Authentication.");
