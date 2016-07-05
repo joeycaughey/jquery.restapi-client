@@ -41,9 +41,9 @@ API.headers() {
 
 
 ----------------------------------------------------
-RESTful Calls (GET, INSERT, UPDATE, DELETE)
 Getting information from the API:
 ----------------------------------------------------
+RESTful Calls (GET, INSERT, UPDATE, DELETE)
 
 All API calls return a function variable to do with as you wish.  The API return request structure is flexible to whatever the backend API response will return.
 
