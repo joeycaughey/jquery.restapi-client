@@ -9,7 +9,6 @@ USAGE AND INITIALIZATION
 Loading the API Class & API configuration.   
 
 
-
 ```
 $.getScript('/_assets/jquery.api/jquery.api.js', function() {
 
@@ -49,19 +48,18 @@ Getting information from the API:
 All API calls return a function variable to do with as you wish.  The API return request structure is flexible to whatever the backend API response will return.
 
 Getting information from an API is as simple as defining the api endpoing and or passing an id parameter to the end poin for a single call:
-
+```
 API.get('ModuleEventsModel/', parameters, function(request) { });
 API.get('ModuleEventsModel/1/', parameters, function(request) { });
-
+```
 
 Inserting and updating information from the API:
-
+```
 API.insert('ModuleEventsModel/', values, function(request) { });
 API.update('ModuleEventsModel/1/', parameters, function(request) { });
-
+```
 
 Deleting information from the API:
-
+```
 API.delete('ModuleEventsModel/1/', false, function(request) { });
-
 ```
