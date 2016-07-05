@@ -53,11 +53,12 @@ API.get('ModuleEventsModel/', parameters, function(request) { });
 API.get('ModuleEventsModel/1/', parameters, function(request) { });
 ```
 
-Inserting and updating information from the API:
+Inserting and updating information from the API. ON an update the id can be passed in the endpoint or with the parameters variables:
 ```
 API.insert('ModuleEventsModel/', values, function(request) { });
 API.update('ModuleEventsModel/1/', parameters, function(request) { });
 ```
+
 
 Deleting information from the API:
 ```
