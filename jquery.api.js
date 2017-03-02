@@ -46,11 +46,7 @@ var API = {
 
         Auth.user = (Auth.user) ? Auth.user : false;
 
-        headers = $.extend({
-            api_key: self.api_key,
-            user: Auth.user,
-            requestor_token: Auth.user.requestor_token
-        }, headers);
+        headers = $.extend(headers, self.headers);
 
 
         $.ajax({
@@ -121,7 +117,7 @@ var API = {
                     self.calls.push(object);
                 }
 
-                if (!self.disable_loader)
+                if (!self.disable_loader && typeof Loading === "function")
                     Loading.show();
             },
             complete: function() {
@@ -129,7 +125,7 @@ var API = {
                 var index = self.calls.indexOf(object);
                 //delete self.calls[index];  
                 self.calls.splice(index, 1);
-                if (self.calls.length === 0) {
+                if (self.calls.length === 0 && typeof Loading === "function") {
                     Loading.hide();
                 }
             }

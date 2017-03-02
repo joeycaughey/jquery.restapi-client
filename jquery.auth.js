@@ -4,6 +4,9 @@ var Auth = {
         var self = this
         var disable = true;
 
+        callback();
+        return;
+
         if (typeof(Storage) !== "undefined") {
             if (localStorage.getItem("user") !== "undefined") {
                 // Code for localStorage/sessionStorage.
